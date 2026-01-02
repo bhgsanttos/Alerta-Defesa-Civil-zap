@@ -5,92 +5,95 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Alertas da Defesa Civil</title>
 
-  <!-- SEO básico -->
-  <meta name="description" content="Receba alertas oficiais da Defesa Civil da sua região diretamente no WhatsApp." />
-
   <style>
     body {
+      font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      background: #020617;
+      color: #fff;
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background: #0f172a;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
       padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
-
-    .container {
+    .box {
       max-width: 420px;
       width: 100%;
       background: #020617;
+      border: 2px solid #1e293b;
       border-radius: 16px;
-      padding: 32px 24px;
+      padding: 24px;
       text-align: center;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
-
-    h1 {
-      font-size: 1.6rem;
-      margin-bottom: 12px;
+    .alerta {
+      background: #dc2626;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: bold;
+      margin-bottom: 16px;
     }
-
-    p {
-      font-size: 1rem;
-      line-height: 1.5;
-      color: #cbd5f5;
-      margin-bottom: 28px;
+    .normal {
+      background: #16a34a;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: bold;
+      margin-bottom: 16px;
     }
-
     .btn {
       display: block;
+      margin-top: 20px;
       background: #22c55e;
       color: #022c22;
-      text-decoration: none;
-      font-weight: 700;
-      padding: 16px;
+      padding: 14px;
       border-radius: 12px;
-      font-size: 1.1rem;
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
-      box-shadow: 0 8px 20px rgba(34,197,94,0.35);
+      font-weight: bold;
+      text-decoration: none;
     }
-
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 26px rgba(34,197,94,0.45);
-    }
-
-    .footer {
-      margin-top: 22px;
-      font-size: 0.8rem;
+    small {
       color: #94a3b8;
+      display: block;
+      margin-top: 12px;
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>🚨 Alertas da Defesa Civil</h1>
+  <div class="box">
+    <div id="status"></div>
 
-    <p>
-      Receba avisos oficiais da Defesa Civil da sua região diretamente no WhatsApp.
-      Informação rápida pode salvar vidas.
-    </p>
+    <h2 id="tipo"></h2>
+    <p id="mensagem"></p>
+    <p><strong>📍 Região:</strong> <span id="regiao"></span></p>
 
-    <!-- 🔔 LINK AUTOMÁTICO DO WHATSAPP -->
-    <a
-      class="btn"
-      href="https://whatsapp.com/channel/0029VbBR4tzLtOj9w30kMG2V"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      🔔 Receber alertas no WhatsApp
+    <a class="btn" href="https://whatsapp.com/channel/0029VbBR4tzLtOj9w30kMG2V" target="_blank">
+      🔔 Seguir canal no WhatsApp
     </a>
 
-    <div class="footer">
-      Conteúdo baseado em comunicados oficiais da Defesa Civil.
-    </div>
+    <small id="atualizado"></small>
+    <small>Baseado em comunicados oficiais da Defesa Civil</small>
   </div>
+
+  <script>
+    fetch("alertas.json")
+      .then(res => res.json())
+      .then(data => {
+        const statusDiv = document.getElementById("status");
+
+        if (data.status === "alerta") {
+          statusDiv.className = "alerta";
+          statusDiv.innerText = "🚨 ALERTA ATIVO";
+        } else {
+          statusDiv.className = "normal";
+          statusDiv.innerText = "✅ SITUAÇÃO NORMAL";
+        }
+
+        document.getElementById("tipo").innerText = data.tipo;
+        document.getElementById("mensagem").innerText = data.mensagem;
+        document.getElementById("regiao").innerText = data.regiao;
+        document.getElementById("atualizado").innerText =
+          "⏰ Atualizado em: " + new Date(data.atualizado_em).toLocaleString("pt-BR");
+      });
+  </script>
 </body>
 </html>

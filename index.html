@@ -2,98 +2,141 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Alertas da Defesa Civil</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Alertas Defesa Civil</title>
 
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-      background: #020617;
-      color: #fff;
       margin: 0;
-      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at top, #0b1020, #020617);
+      color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
+      height: 100vh;
     }
-    .box {
+
+    .card {
+      width: 90%;
       max-width: 420px;
-      width: 100%;
-      background: #020617;
-      border: 2px solid #1e293b;
-      border-radius: 16px;
-      padding: 24px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 28px;
       text-align: center;
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
     }
-    .alerta {
-      background: #dc2626;
-      padding: 12px;
-      border-radius: 12px;
-      font-weight: bold;
-      margin-bottom: 16px;
+
+    .title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 10px;
     }
-    .normal {
-      background: #16a34a;
-      padding: 12px;
-      border-radius: 12px;
-      font-weight: bold;
-      margin-bottom: 16px;
+
+    .region {
+      font-size: 15px;
+      margin-bottom: 18px;
+      opacity: 0.9;
     }
+
+    .status {
+      margin: 16px 0;
+      font-size: 14px;
+      opacity: 0.85;
+    }
+
     .btn {
       display: block;
-      margin-top: 20px;
       background: #22c55e;
-      color: #022c22;
-      padding: 14px;
-      border-radius: 12px;
-      font-weight: bold;
+      color: #052e16;
+      padding: 16px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
       text-decoration: none;
+      margin-top: 14px;
     }
-    small {
-      color: #94a3b8;
-      display: block;
-      margin-top: 12px;
+
+    .footer {
+      margin-top: 18px;
+      font-size: 12px;
+      opacity: 0.6;
     }
   </style>
 </head>
-
 <body>
-  <div class="box">
-    <div id="status"></div>
 
-    <h2 id="tipo"></h2>
-    <p id="mensagem"></p>
-    <p><strong>📍 Região:</strong> <span id="regiao"></span></p>
+  <div class="card">
+    <div class="title">🚨 Alertas da Defesa Civil</div>
 
-    <a class="btn" href="https://whatsapp.com/channel/0029VbBR4tzLtOj9w30kMG2V" target="_blank">
+    <div class="region" id="region">
+      📍 Detectando sua localização…
+    </div>
+
+    <div class="status" id="status">
+      Acompanhe alertas oficiais e avisos preventivos.
+    </div>
+
+    <a
+      class="btn"
+      id="whatsappBtn"
+      href="https://whatsapp.com/channel/0029VbBR4tzLtOj9w30kMG2V"
+      target="_blank"
+    >
       🔔 Seguir canal no WhatsApp
     </a>
 
-    <small id="atualizado"></small>
-    <small>Baseado em comunicados oficiais da Defesa Civil</small>
+    <div class="footer">
+      Baseado em comunicados oficiais da Defesa Civil e órgãos meteorológicos
+    </div>
   </div>
 
   <script>
-    fetch("alertas.json")
-      .then(res => res.json())
-      .then(data => {
-        const statusDiv = document.getElementById("status");
+    const regionEl = document.getElementById("region");
+    const statusEl = document.getElementById("status");
 
-        if (data.status === "alerta") {
-          statusDiv.className = "alerta";
-          statusDiv.innerText = "🚨 ALERTA ATIVO";
-        } else {
-          statusDiv.className = "normal";
-          statusDiv.innerText = "✅ SITUAÇÃO NORMAL";
+    function setFallback() {
+      regionEl.innerHTML = "📍 Alertas válidos para todo o Brasil";
+      statusEl.innerHTML = "Ative a localização para receber alertas do seu estado.";
+    }
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`
+            );
+            const data = await res.json();
+
+            const city =
+              data.address.city ||
+              data.address.town ||
+              data.address.village ||
+              "Sua região";
+
+            const state = data.address.state || "Brasil";
+            const uf = data.address.state_code || "";
+
+            regionEl.innerHTML = `📍 ${city} – ${uf}`;
+            statusEl.innerHTML = `Alertas ativos para ${state}.`;
+
+          } catch (e) {
+            setFallback();
+          }
+        },
+        () => {
+          setFallback();
         }
-
-        document.getElementById("tipo").innerText = data.tipo;
-        document.getElementById("mensagem").innerText = data.mensagem;
-        document.getElementById("regiao").innerText = data.regiao;
-        document.getElementById("atualizado").innerText =
-          "⏰ Atualizado em: " + new Date(data.atualizado_em).toLocaleString("pt-BR");
-      });
+      );
+    } else {
+      setFallback();
+    }
   </script>
+
 </body>
 </html>
